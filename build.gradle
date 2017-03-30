@@ -231,3 +231,17 @@ task synthesizeCrossValidationAudio {
         }
     }
 }
+
+task copyCrossValidationReferenceData(type: Copy) {
+    from "$buildDir/wav", "$buildDir/lab"
+    exclude 'arctic_a0018.*',
+            'arctic_a0159.*',
+            'arctic_a0174.*',
+            'arctic_a0332.*',
+            'arctic_a0350.*',
+            'arctic_a0505.*',
+            'arctic_a0510.*',
+            'arctic_a0554.*',
+            'arctic_b0004.*'
+    into "$buildDir/crossvalidation/reference"
+}
