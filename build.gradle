@@ -245,3 +245,18 @@ task copyCrossValidationReferenceData(type: Copy) {
             'arctic_b0004.*'
     into "$buildDir/crossvalidation/reference"
 }
+
+task runCrossValidation(type: JavaExec) {
+    def allophonesFile = file("$buildDir/crossvalidation/allophones.en_US.xml")
+    classpath configurations.runtime
+    main 'marytts.signalproc.analysis.distance.RmsLsfDistortionComputer'
+    systemProperties = [allophoneset: allophonesFile.path]
+    args copyCrossValidationReferenceData.destinationDir, synthesizeCrossValidationAudio.destDir
+    doFirst {
+        download {
+            src 'https://raw.githubusercontent.com/marytts/marytts-lexicon-en_US-cmudict/master/modules/en/us/lexicon/allophones.en_US.xml'
+            dest allophonesFile
+            overwrite false
+        }
+    }
+}
