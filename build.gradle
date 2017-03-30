@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "de.dfki.mary:marytts-client:5.2"
+    }
+}
+
 plugins {
     id "de.dfki.mary.voicebuilding-legacy" version "5.2.0"
     id "de.undercouch.download" version "3.2.0"
@@ -16,6 +25,8 @@ version '0.1-SNAPSHOT'
 
 import de.undercouch.gradle.tasks.download.Download
 import groovy.io.FileType
+import marytts.util.data.audio.MaryAudioUtils
+import marytts.util.dom.MaryDomUtils
 
 def scriptDir = "$rootDir/scripts"
 def dataURL = "https://github.com/ioonaa/voice-ktn-data/archive/master.zip"
@@ -193,6 +204,30 @@ task generateCrossvalidationInputFiles {
                 rename { basename + '.xml' }
                 into destDir
             }
+        }
+    }
+}
+
+task synthesizeCrossValidationAudio {
+    ext.destDir = file("$buildDir/crossvalidation/output")
+    outputs.dir destDir
+    doLast {
+        destDir.mkdirs()
+        def mary = new marytts.client.RemoteMaryInterface()
+        mary.inputType = 'RAWMARYXML'
+        fileTree(generateCrossvalidationInputFiles.destDir).include('*.xml').each { xmlFile ->
+            def basename = xmlFile.name - '.xml'
+            def doc = MaryDomUtils.parseDocument(xmlFile)
+            mary.outputType = 'AUDIO'
+            def audio = mary.generateAudio(doc)
+            def samples = MaryAudioUtils.getSamplesAsDoubleArray(audio)
+            def wavFile = file("$destDir/${basename}.wav")
+            MaryAudioUtils.writeWavFile(samples, wavFile.path, audio.format)
+            logger.lifecycle "Wrote $wavFile"
+            def labFile = file("$destDir/${basename}.lab")
+            mary.outputType = 'REALISED_DURATIONS'
+            labFile.text = mary.generateText(doc)
+            logger.lifecycle "Wrote $labFile"
         }
     }
 }
