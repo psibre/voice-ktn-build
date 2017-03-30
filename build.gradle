@@ -176,3 +176,23 @@ configurations.all {
         }
     }
 }
+
+task generateCrossvalidationInputFiles {
+    def srcDir = file("$buildDir/text")
+    def destDir = file("$buildDir/crossvalidation/input")
+    inputs.files srcDir
+    outputs.dir destDir
+    doLast {
+        destDir.mkdirs()
+        fileTree(srcDir).include('*.txt').each { txtFile ->
+            def basename = txtFile.name - '.txt'
+            copy {
+                from 'src/templates'
+                include 'blacklist.xml'
+                expand([basename: basename, text: txtFile.text])
+                rename { basename + '.xml' }
+                into destDir
+            }
+        }
+    }
+}
