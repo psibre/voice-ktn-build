@@ -190,7 +190,7 @@ configurations.all {
 
 task generateCrossvalidationInputFiles {
     def srcDir = file("$buildDir/text")
-    def destDir = file("$buildDir/crossvalidation/input")
+    ext.destDir = file("$buildDir/crossvalidation/input")
     inputs.files srcDir
     outputs.dir destDir
     doLast {
